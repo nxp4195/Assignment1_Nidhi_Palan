@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Fun with Graphs!</title>
+        <link rel="stylesheet" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
+        <script src="http://cdn.pubnub.com/pubnub.min.js"></script>
+        <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+        <script src="bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+    var chartType = "Line";
+    var globalData = [];
+    var options;
+    google.charts.setOnLoadCallback(drawChart);
+    getData();
+    google.charts.load('current', {packages: ['corechart']});
+        
+    function getData() {
+        PUBNUB.init({
+            subscribe_key: 'sub-c-b1cadece-f0fa-11e3-928e-02ee2ddab7fe'
+            }).subscribe({
+            channel : 'pubnub-weather',
+            message : function(msg){
+                    if(globalData.length === 5){
+                        globalData.shift();
+                    }
+                    globalData.push(msg);
+                    google.charts.setOnLoadCallback(drawChart);
+                }
+            });
+        }    
+        
+        function drawChart() {
+                var data = new google.visualization.DataTable();
+                data.addColumn('string', 'Location');
+                data.addColumn('number', 'Temp');
+                data.addColumn('number', 'Wind Direction');
+
+        $.each(globalData, function (i, row) {
+                    data.addRow([
+                    row.location,
+                    parseFloat(row.temp_fahrenheit),
+                    parseFloat(row.wind_direction)
+                  ]);
+                });
+        var chart = new google.visualization.LineChart($('#chart').get(0));
+            if(chartType == "Line")
+              { 
+                options = {
+                                title : 'State Capital Weather',
+                                vAxis: {title: 'F/degs'},
+                                hAxis: {title: 'Location'},
+                                backgroundColor: '#C6E8F2',
+                                'height':500
+                            };
+                chart = new google.visualization.LineChart($('#chart').get(0));
+              }
+            
+            else if(chartType=="Bar")
+                {
+                    
+                     chart = new google.charts.Bar($('#chart').get(0)); 
+                     options = {
+                      title : 'State Capital Weather',
+                      hAxis: {title: 'F/degs'},
+                      vAxis: {title: 'Location'},
+                      bars: 'horizontal'
+                    };  
+                }
+            else if(chartType=="Combo")
+                {
+                      
+                    chart = new google.visualization.ComboChart($('#chart').get(0));
+                    options = {
+                         title : 'State Capital Weather',
+                         vAxis: {title: 'F/degs'},
+                         hAxis: {title: 'Location'},
+                         seriesType: 'bars',
+                         series: {2: {type: 'line'}},
+                         backgroundColor: '#C6E8F2'
+                    };
+                }
+             chart.draw(data,options);
+         
+      }
+    function setChartType(which){
+            chartType = which.id;
+            drawChart();
+        }
+        google.charts.load('current', {'packages':['corechart','bar']});
+       
+    </script>
+    </head>
+    <body>
+        <div class="container"> 
+
+            <div class="row container">
+                <div class="col-md-9">
+                    <h1> Nidhi Palan</h1>
+                    <p>Assignment 1</p>
+                    <p>Welcome to Data visualisation of <a href="https://www.pubnub.com/developers/realtime-data-streams/state-capital-weather/" target="_blank">State Captial Weather</a> from Pubnub</p> 
+                    <div class ="panel panel-default">
+                    <div class="panel-header">
+                       
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <div class="container"> 
+                <div id="chart" style="width: 100%;"></div> 
+                <div class="btn-group" role="group" aria-label="...">
+                <button id="Line" type="button" class="btn btn-default" onclick="setChartType(this)">Line Chart</button>
+                <button id="Bar" type="button" class="btn btn-default" onclick="setChartType(this)">Bar Graph</button>
+                <button id="Combo" type="button" class="btn btn-default" onclick="setChartType(this)">Combo Chart</button>
+                </div> 
+                </div>
+        </div>   
+    </body>  
+</html>
