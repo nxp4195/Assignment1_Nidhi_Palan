@@ -11,9 +11,9 @@
     var chartType = "Line";
     var globalData = [];
     var options;
+    google.charts.load('current', {packages: ['corechart','bar']});
     google.charts.setOnLoadCallback(drawChart);
     getData();
-    google.charts.load('current', {packages: ['corechart']});
         
     function getData() {
         PUBNUB.init({
@@ -25,7 +25,7 @@
                         globalData.shift();
                     }
                     globalData.push(msg);
-                    google.charts.setOnLoadCallback(drawChart);
+		  drawChart();
                 }
             });
         }    
@@ -87,7 +87,6 @@
             chartType = which.id;
             drawChart();
         }
-        google.charts.load('current', {'packages':['corechart','bar']});
        
     </script>
     </head>
@@ -101,7 +100,6 @@
                     <p>Welcome to Data visualisation of <a href="https://www.pubnub.com/developers/realtime-data-streams/state-capital-weather/" target="_blank">State Captial Weather</a> from Pubnub</p> 
                     <div class ="panel panel-default">
                     <div class="panel-header">
-                       
                         </div>
                     </div>
                 </div>
