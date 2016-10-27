@@ -7,111 +7,198 @@
         <script src="http://code.jquery.com/jquery-latest.min.js"></script>
         <script src="bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script>
-    var chartType = "Line";
-    var globalData = [];
-    var options;
-    google.charts.load('current', {packages: ['corechart','bar']});
-    google.charts.setOnLoadCallback(drawChart);
-    getData();
-        
-    function getData() {
-        PUBNUB.init({
-            subscribe_key: 'sub-c-b1cadece-f0fa-11e3-928e-02ee2ddab7fe'
-            }).subscribe({
-            channel : 'pubnub-weather',
-            message : function(msg){
-                    if(globalData.length === 5){
-                        globalData.shift();
-                    }
-                    globalData.push(msg);
-		  drawChart();
-                }
-            });
-        }    
-        
-        function drawChart() {
-                var data = new google.visualization.DataTable();
-                data.addColumn('string', 'Location');
-                data.addColumn('number', 'Temp');
-                data.addColumn('number', 'Wind Direction');
-
-        $.each(globalData, function (i, row) {
-                    data.addRow([
-                    row.location,
-                    parseFloat(row.temp_fahrenheit),
-                    parseFloat(row.wind_direction)
-                  ]);
-                });
-        var chart = new google.visualization.LineChart($('#chart').get(0));
-            if(chartType == "Line")
-              { 
-                options = {
-                                title : 'State Capital Weather',
-                                vAxis: {title: 'F/degs'},
-                                hAxis: {title: 'Location'},
-                                backgroundColor: '#C7DFF6',
-                                'height':500
-                            };
-                chart = new google.visualization.LineChart($('#chart').get(0));
-              }
-            
-            else if(chartType=="Bar")
-                {
-                    
-                     chart = new google.charts.Bar($('#chart').get(0)); 
-                     options = {
-                      title : 'State Capital Weather',
-                      hAxis: {title: 'F/degs'},
-                      vAxis: {title: 'Location'},
-                      bars: 'horizontal'
-                    };  
-                }
-            else if(chartType=="Combo")
-                {
-                      
-                    chart = new google.visualization.ComboChart($('#chart').get(0));
-                    options = {
-                         title : 'State Capital Weather',
-                         vAxis: {title: 'F/degs'},
-                         hAxis: {title: 'Location'},
-                         seriesType: 'bars',
-                         series: {2: {type: 'line'}},
-                         backgroundColor: '#C7DFF6'
-                    };
-                }
-             chart.draw(data,options);
-         
-      }
-    function setChartType(which){
-            chartType = which.id;
-            drawChart();
-        }
-       
-    </script>
+        <!-- //Map Viz files -->
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="http://d3js.org/topojson.v1.min.js"></script>
+        <script src="http://datamaps.github.io/scripts/datamaps.all.min.js?v=1"></script>
     </head>
     <body>
-        <div class="container"> 
+        <div class="container">
 
             <div class="row container">
                 <div class="col-md-9">
                     <h1> Nidhi Palan</h1>
                     <p>Assignment 1</p>
-                    <p>Welcome to Data visualisation of <a href="https://www.pubnub.com/developers/realtime-data-streams/state-capital-weather/" target="_blank">State Captial Weather</a> from Pubnub</p> 
+                    <p style="font-size:18px;"><b>1.</b> Data visualisation of <a href="https://www.pubnub.com/developers/realtime-data-streams/state-capital-weather/" target="_blank">State Captial Weather</a> from Pubnub with <a href="https://developers.google.com/chart/" target="_blank">Google Charts</a></p>
                     <div class ="panel panel-default">
                     <div class="panel-header">
                         </div>
                     </div>
                 </div>
             </div>
-                <div class="container"> 
-                <div id="chart" style="width: 100%;"></div> 
+            <div class="container">
+                <div id="chart" style="width: 100%;"></div>
                 <div class="btn-group" role="group" aria-label="...">
-                <button id="Line" type="button" class="btn btn-default" onclick="setChartType(this)">Line Chart</button>
-                <button id="Bar" type="button" class="btn btn-default" onclick="setChartType(this)">Bar Graph</button>
-                <button id="Combo" type="button" class="btn btn-default" onclick="setChartType(this)">Combo Chart</button>
-                </div> 
+                    <button id="Line" type="button" class="btn btn-default" onclick="setChartType(this)">Line Chart</button>
+                    <button id="Bar" type="button" class="btn btn-default" onclick="setChartType(this)">Bar Graph</button>
+                    <button id="Combo" type="button" class="btn btn-default" onclick="setChartType(this)">Combo Chart</button>
                 </div>
-        </div>   
-    </body>  
+            </div>
+            <div style="margin-top:5em"></div>
+            <div class="row container">
+                <div class="col-md-9">
+                    <p style="font-size:18px;"><b>2.</b>Data visualisation of <a href="https://www.pubnub.com/developers/realtime-data-streams/state-capital-weather/" target="_blank">State Captial Weather</a> from Pubnub with <a href="https://datamaps.github.io/" target="_blank">DataMaps</a> and <a href="https://d3js.org" target="_blank">D3.JS</a></p>
+                    <div class ="panel panel-default">
+                    <div class="panel-header">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="container1" style="margin:10px auto; position: relative; width: 100%; max-height: 500px;"></div>
+        </div>
+        <script>
+        var chartType = "Line";
+        var globalData = [];
+        var vizData = [];
+        var options;
+        google.charts.load('current', {packages: ['corechart','bar']});
+        google.charts.setOnLoadCallback(drawChart);
+        getData();
+
+        function getData() {
+            PUBNUB.init({
+                subscribe_key: 'sub-c-b1cadece-f0fa-11e3-928e-02ee2ddab7fe'
+                }).subscribe({
+                channel : 'pubnub-weather',
+                message : function(msg){
+                        //test if there are more than 5 values if so then remove first value
+                        if(globalData.length === 5){
+                            globalData.shift();
+                        }
+                        //map vizualization entry code
+                        //check temperature and give fill color accordingly
+                        var fill = '';
+                        if(msg.temp_fahrenheit>=80.0)
+                            fill='HOT (>80)';
+                        else if(msg.temp_fahrenheit<80.0 && msg.temp_fahrenheit>=60.0)
+                            fill='MILD (60-80)';
+                        else if(msg.temp_fahrenheit<60.0 && msg.temp_fahrenheit>=40.0)
+                            fill='COLD (40-60)';
+                        else if(msg.temp_fahrenheit<40.0)
+                            fill='VERY COLD (<40)'
+                        //add information to vizData array
+                        vizData.push({
+                            name: msg.location,
+                            latitude: msg.latitude,
+                            longitude: msg.longitude,
+                            radius: 20,
+                            fillKey:fill,
+                            temp: msg.temp_fahrenheit
+                        });
+                        globalData.push(msg);
+    		  drawChart();
+              //draw the map
+              addToMap();
+                    }
+                });
+            }
+            //google chart init and plotting
+            function drawChart() {
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Location');
+                    data.addColumn('number', 'Temp');
+                    data.addColumn('number', 'Wind Direction');
+
+            $.each(globalData, function (i, row) {
+                        data.addRow([
+                        row.location,
+                        parseFloat(row.temp_fahrenheit),
+                        parseFloat(row.wind_direction)
+                      ]);
+                    });
+            var chart = new google.visualization.LineChart($('#chart').get(0));
+                if(chartType == "Line")
+                  {
+                    options = {
+                                    title : 'State Capital Weather',
+                                    vAxis: {title: 'F / Degs'},
+                                    hAxis: {title: 'Location'},
+                                    backgroundColor: '#C7DFF6',
+                                    'height':500
+                                };
+                    chart = new google.visualization.LineChart($('#chart').get(0));
+                  }
+
+                else if(chartType=="Bar")
+                    {
+
+                         chart = new google.charts.Bar($('#chart').get(0));
+                         options = {
+                          title : 'State Capital Weather',
+                          hAxis: {title: 'F/degs'},
+                          vAxis: {title: 'Location'},
+                          bars: 'horizontal'
+                        };
+                    }
+                else if(chartType=="Combo")
+                    {
+
+                        chart = new google.visualization.ComboChart($('#chart').get(0));
+                        options = {
+                             title : 'State Capital Weather',
+                             vAxis: {title: 'F/degs'},
+                             hAxis: {title: 'Location'},
+                             seriesType: 'bars',
+                             series: {2: {type: 'line'}},
+                             backgroundColor: '#C7DFF6'
+                        };
+                    }
+                 chart.draw(data,options);
+
+          }
+        // change the type of graph
+        function setChartType(which){
+            chartType = which.id;
+            drawChart();
+        }
+
+        //init the map with zoom on USA
+        var zoom = new Datamap({
+            scope: 'world',
+            element: document.getElementById('container1'),
+            responsive: true,
+            height: 500,
+            setProjection: function(element) {
+                var projection = d3.geo.mercator()
+                .center([-95,40])
+                .rotate([2,0])
+                .scale(1050)
+                .translate([element.offsetWidth / 2, element.offsetHeight / 2]);
+                var path = d3.geo.path()
+                .projection(projection);
+
+                return {path: path, projection: projection};
+            },
+            geographyConfig: {
+                popupOnHover: false,
+                highlightOnHover: false
+            },
+
+            fills: {
+                'HOT (>80)':'red',
+                'MILD (60-80)':'orange',
+                'COLD (40-60)':'#ADD8E6',
+                'VERY COLD (<40)': 'blue',
+                defaultFill: '#EDDC4E'
+            }
+        });
+        //show the legend
+        zoom.legend();
+
+        //add the data to the map
+        function addToMap(){
+            zoom.bubbles(vizData,{
+                //give the hover information
+               popupTemplate: function(geo, data) {
+                 return "<div class='hoverinfo'>Temperature in <b><em>" + data.name + "</em></b> is <b><em>"+ data.temp +"&deg F</em></b></div>";
+               }
+            });
+        }
+        //resize code for map
+        window.addEventListener('resize', function() {
+            zoom.resize();
+        });
+        </script>
+
+    </body>
 </html>

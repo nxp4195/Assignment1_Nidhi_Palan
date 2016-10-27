@@ -10,10 +10,15 @@ http://rawgit.com/nxp4195/Assignment1_Nidhi_Palan/master/a1_nidhi_palan.html
 # API Reference
 *[jQuery](https://jquery.com/)
  - jQuery for all the DOM Manipulations.
- 
+
 *[Google charts](https://developers.google.com/chart/)
  -for line, combo and bar charts.
- 
+
 *[Bootstrap](http://getbootstrap.com/)
  -Bootstrap theme
- 
+
+ *[DataMaps](http://datamaps.github.io/)
+  -Map Visualization
+
+ *[D3.js](http://d3js.org/)
+  -Map Visualization
